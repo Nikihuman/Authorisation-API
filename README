@@ -1,0 +1,25 @@
+WELCOME EVERYONE
+
+---
+
+To instal this API
+
+--- npm ci
+
+---
+
+Before running this API you must create a .env file in the project root.
+Then in this file you should create:
+SECRET = " String"
+SALT = ''Number"
+DATABASE_URL = "String" (I used PostgresDB and PrismaORM)
+
+And finally make the migration
+
+---
+
+To run this API
+
+--- npm run dev
+
+---
