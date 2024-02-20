@@ -10,9 +10,9 @@ To instal this API
 
 Before running this API you must create a .env file in the project root.
 Then in this file you should create:
-SECRET = " String"
-SALT = ''Number"
-DATABASE_URL = "String" (I used PostgresDB and PrismaORM)
+SECRET = "String"
+SALT = "String"
+DATABASE_URL = "postgresql://(POSTGRES_USER):(POSTGRES_PASSWORD)@localhost:5432/pgdb?schema=public" (I used PostgresDB and PrismaORM)
 
 And finally make the migration
 

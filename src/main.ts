@@ -1,4 +1,4 @@
-import { Container } from 'inversify';
+import { Container, ContainerModule, interfaces } from 'inversify';
 import { App } from './app';
 import { TYPES } from './types';
 import 'reflect-metadata';
@@ -25,27 +25,40 @@ import { PhotosController } from './photos/photos.controller/photos.controller';
 import { IPhotosController } from './photos/photos.controller/photos.controller.interface';
 import { AuthMiddleware } from './common/auth.middleware';
 
-export function bootstrap(): App {
-	const appContaineer = new Container();
-	appContaineer.bind<ILogger>(TYPES.ILogger).to(LoggerService).inSingletonScope();
-	appContaineer.bind<App>(TYPES.Application).to(App);
-	appContaineer.bind<IExeptionFilter>(TYPES.IExeptionFilter).to(ExeptionFilter);
-	appContaineer.bind<IUserController>(TYPES.IUserController).to(UserController);
-	appContaineer.bind<IUsersService>(TYPES.IUsersService).to(UsersService);
-	appContaineer.bind<PrismaService>(TYPES.PrismaService).to(PrismaService).inSingletonScope();
-	appContaineer.bind<IConfigService>(TYPES.IConfigService).to(ConfigService).inSingletonScope();
-	appContaineer.bind<IJWTService>(TYPES.IJWTService).to(JWTService).inSingletonScope();
-	appContaineer
-		.bind<IUsersRepository>(TYPES.IUsersRepository)
-		.to(UsersRepository)
-		.inSingletonScope();
-	appContaineer.bind<IPhotosService>(TYPES.IPhotosService).to(PhotosService);
-	appContaineer.bind<IPhotosRepository>(TYPES.IPhotosRepository).to(PhotosRepository);
-	appContaineer.bind<IPhotosController>(TYPES.IPhotosController).to(PhotosController);
-	appContaineer.bind<AuthMiddleware>(TYPES.AuthMiddleware).to(AuthMiddleware);
-	const app = appContaineer.get<App>(TYPES.Application);
+export interface IBootstrapReturn {
+	appContainer: Container;
+	app: App;
+}
+
+export const appUserBindings = new ContainerModule((bind: interfaces.Bind) => {
+	bind<IUserController>(TYPES.IUserController).to(UserController);
+	bind<IUsersService>(TYPES.IUsersService).to(UsersService);
+	bind<IUsersRepository>(TYPES.IUsersRepository).to(UsersRepository).inSingletonScope();
+});
+
+export const appPhotoBindings = new ContainerModule((bind: interfaces.Bind) => {
+	bind<IPhotosController>(TYPES.IPhotosController).to(PhotosController);
+	bind<IPhotosService>(TYPES.IPhotosService).to(PhotosService);
+	bind<IPhotosRepository>(TYPES.IPhotosRepository).to(PhotosRepository);
+});
+export const appBindings = new ContainerModule((bind: interfaces.Bind) => {
+	bind<ILogger>(TYPES.ILogger).to(LoggerService).inSingletonScope();
+	bind<IExeptionFilter>(TYPES.IExeptionFilter).to(ExeptionFilter);
+	bind<PrismaService>(TYPES.PrismaService).to(PrismaService).inSingletonScope();
+	bind<IConfigService>(TYPES.IConfigService).to(ConfigService).inSingletonScope();
+	bind<IJWTService>(TYPES.IJWTService).to(JWTService).inSingletonScope();
+	bind<AuthMiddleware>(TYPES.AuthMiddleware).to(AuthMiddleware).inSingletonScope();
+});
+
+export function bootstrap(): IBootstrapReturn {
+	const appContainer = new Container();
+	appContainer.bind<App>(TYPES.Application).to(App);
+	appContainer.load(appBindings);
+	appContainer.load(appUserBindings);
+	appContainer.load(appPhotoBindings);
+	const app = appContainer.get<App>(TYPES.Application);
 	app.init();
-	return app;
+	return { appContainer, app };
 }
 
 bootstrap();
